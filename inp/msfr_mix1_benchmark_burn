@@ -1,0 +1,267 @@
+ 
+%-----Benchmark MSFR-----
+%-----Neutronic benchmark of the molten salt fast reactor in the frame of the EVOL and MARS collaborative projects-----
+%-----Initial test using ENDF7-----
+
+/************************
+ * Geometry definitions *
+ ************************/
+
+surf 1 cyl 0.0 0.0 112.75 118.75 306.75% fuel
+surf 2 cyl 0.0 0.0 114.75 118.75 306.75% clad
+surf 3 cyl 0.0 0.0 160.75 120.75 304.75% blanket
+surf 4 cyl 0.0 0.0 162.75 118.75 306.75% clad
+surf 5 cyl 0.0 0.0 182.75 118.75 306.75% prot
+surf 6 cyl 0.0 0.0 206.45 100 325.5 % fuel
+surf 7 cyl 0.0 0.0 226.45 0 425.5 % clad
+
+cell 1 0 fuel -1
+cell 2 0 clad 1 -2
+cell 3 0 blanket 2 -3
+cell 4 0 clad 2 3 -4
+cell 5 0 prot 4 -5
+cell 6 0 fuel 5 -6
+cell 7 0 clad 6 -7
+cell 8 0 outside  7 % Outside world
+
+%-----Materials------
+%-----Table 7 from Benchmark-----
+mat fuel -4.1249 burn 1 tmp 900.0 vol 1.8E07 rgb 250 250 50
+Li-7.09c        77.499225
+Li-6.09c        0.000775
+F-19.09c       167.50
+Th-232.09c      19.899
+U-233.09c        2.601
+
+%-----Table 3 from Benchmark-----
+mat blanket -4.1249 burn 1 tmp 900.0 vol 7.3E06 rgb 255 105 180
+Li-7.09c        77.499225
+Li-6.09c        0.000775
+F-19.09c       167.50
+Th-232.09c      22.5
+
+%-----Table 2 and Subsection 2.3.2 from Benchmark-----
+mat clad -10 tmp 900.0 rgb 0 71 171
+Ni-nat.09c    677.53
+W-nat.09c     85.09
+Cr-nat.09c    68.36
+Mo-nat.09c    6.278
+Fe-nat.09c    5.391
+Ti-nat.09c    2.516
+6000.09c      2.508
+25055.09c     1.192
+Si-nat.09c    2.149
+13027.09c     0.444
+5010.09c      0.055919
+5011.09c      0.225081
+15031.09c     0.196
+S-nat.09c     0.034
+
+%-----Subsection 2.3.2 from Benchmark-----
+mat prot -2.52 tmp 900.0 rgb 255 140 0
+5010.09c    0.021753673
+5011.09c    0.088113366
+%----There is no library for C 13. testing natural Carbon from existing library-----
+6000.09c    0.02746676
+
+%-----Reprocessing parameters and materials
+
+mflow fp_removal_fuel_solid
+%Solid FP
+Zn  2.57E-08
+Ga  2.57E-08
+Ge  2.57E-08
+As  2.57E-08
+Se  2.57E-08
+Br  2.57E-08
+Rb  2.57E-08
+Sr  2.57E-08
+Y   2.57E-08
+Zr  2.57E-08
+Cd  2.57E-08
+In  2.57E-08
+Sn  2.57E-08
+I   2.57E-08
+Cs  2.57E-08
+Ba  2.57E-08
+La  2.57E-08
+Ce  2.57E-08
+Pr  2.57E-08
+Nd  2.57E-08
+Pm  2.57E-08
+Sm  2.57E-08
+Eu  2.57E-08
+Gd  2.57E-08
+Tb  2.57E-08
+Dy  2.57E-08
+Ho  2.57E-08
+Er  2.57E-08
+Tm  2.57E-08
+Yb  2.57E-08
+
+mflow fp_removal_fuel_gas
+%----Gas FP
+H    3.33E-2
+He   3.33E-2
+N    3.33E-2
+O    3.33E-2
+Ne   3.33E-2
+Ar   3.33E-2
+Kr   3.33E-2
+Nb   3.33E-2
+Mo   3.33E-2
+Tc   3.33E-2
+Ru   3.33E-2
+Rh   3.33E-2
+Pd   3.33E-2
+Ag   3.33E-2
+Sb   3.33E-2
+Te   3.33E-2
+Xe   3.33E-2
+Rn   3.33E-2
+
+mflow fp_removal_blanket_solid
+%Solid FP
+Zn  6.01E-10
+Ga  6.01E-10
+Ge  6.01E-10
+As  6.01E-10
+Se  6.01E-10
+Br  6.01E-10
+Rb  6.01E-10
+Sr  6.01E-10
+Y   6.01E-10
+Zr  6.01E-10
+Cd  6.01E-10
+In  6.01E-10
+Sn  6.01E-10
+I   6.01E-10
+Cs  6.01E-10
+Ba  6.01E-10
+La  6.01E-10
+Ce  6.01E-10
+Pr  6.01E-10
+Nd  6.01E-10
+Pm  6.01E-10
+Sm  6.01E-10
+Eu  6.01E-10
+Gd  6.01E-10
+Tb  6.01E-10
+Dy  6.01E-10
+Ho  6.01E-10
+Er  6.01E-10
+Tm  6.01E-10
+Yb  6.01E-10
+U   6.01E-8
+
+mflow fp_removal_blanket_gas
+%----Gas FP
+H    3.33E-2
+He   3.33E-2
+N    3.33E-2
+O    3.33E-2
+Ne   3.33E-2
+Ar   3.33E-2
+Kr   3.33E-2
+Nb   3.33E-2
+Mo   3.33E-2
+Tc   3.33E-2
+Ru   3.33E-2
+Rh   3.33E-2
+Pd   3.33E-2
+Ag   3.33E-2
+Sb   3.33E-2
+Te   3.33E-2
+Xe   3.33E-2
+Rn   3.33E-2
+
+
+mflow feed_fuel
+Th-232 2.85E-9
+U-233  2.85E-9
+
+mflow feed_blanket
+Th-232  2.85E-10
+
+%Tanks for the reprocessing materials
+
+mat fuel_gastank  0.0 burn 1 tmp 900.0 vol 6.5e6
+mat fuel_tank  0.0 burn 1 tmp 900.0 vol 1e6
+mat blanket_gastank  0.0 burn 1 tmp 900.0 vol 6.5e6
+mat blanket_tank  0.0 tmp 900.0 burn 1 tmp 900.0 vol 1e6
+
+mat fuel_rep -12.5 burn 1 tmp 900.0 vol 1e6 rgb 250 250 50
+Th-232.09c      19.899
+U-233.09c       2.601
+
+mat blanket_rep -11.7 burn 1 tmp 900.0 vol 1e6 rgb 255 105 180
+Th-232.09c      1.0
+
+%-----Seems wise to separate gaseous FP from solid in order to have separate info
+
+rep reprocessing_msfr
+rc fuel fuel_gastank fp_removal_fuel_gas 1
+rc fuel fuel_tank fp_removal_fuel_solid  1
+rc blanket blanket_gastank fp_removal_blanket_gas 1
+rc blanket blanket_tank fp_removal_blanket_solid 1
+rc fuel_rep fuel feed_fuel 0
+rc blanket_rep blanket feed_blanket 0
+
+%-----Cross section path and parameters-----
+
+set acelib "/opt/xsdata/sss_endfb7u.xsdata"
+set ures 1
+
+% --- Decay and fission yield libraries:
+
+set declib "/opt/xsdata/sss_endfb7.dec"
+set nfylib "/opt/xsdata/sss_endfb7.nfy"
+
+%-----Run. boundary and plot parameters-----
+
+plot 1 500 500 0
+plot 2 500 500 0
+plot 3 500 500 0
+
+mesh 1 500 500  0
+mesh 2 500 500  0
+mesh 3 500 500  0
+
+set pop 10000 100 10
+
+set ifp 20
+
+set power 3.00E+09
+
+%------Burnup parameters
+
+dep pro reprocessing_msfr
+%daystep 35 148 170 170 170 170
+daystep 35 148 182 365 365 730 1825 3659 1825 1825 7300 18250 18250 18250
+
+set pcc 0 %predictor-corrector must be turned off to use depletion
+set gcu -1 %turning off group constant generation hastens the calculation
+set depmtx 1 %dumps depletion matrices if needed. should be one per burnt material.
+set printm 1 %prints out isotopic compositions of burnt materials over depletion
+
+% --- Calculate material volumes before simulation by
+%     sampling 10 million random points in the geometry.
+%     Specifying the material volumes is crucial in burnup calculations
+
+set mcvol 10000000
+
+% --- Nuclide inventory: these nuclides will be included in the
+%     depletion output file burn_dep.m. The list can be changed
+%     after the simulation has concluded if needed. Then you can run
+%     sss2 -rdep burn
+%     which will make Serpent re-read the inventory and re-produce the
+%     depletion output file.
+
+set inventory all
+
+% --- Reduce unionized energy grid size in order to save some memory
+%     Use grid thinning with 5e-5 reconstruction tolerance between
+%     1e-9 and 15 MeV.
+
+set egrid 5e-5 1e-9 15.0
+
