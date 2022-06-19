@@ -3,8 +3,10 @@ from masses import *
 import numpy as np
 from numpy import sign, log, power
 import pandas as pd
+import os
 
-inp = "inp/msfr_mix1_benchmark_burn"
+inp_file = "inp/msfr_mix1_benchmark_burn"
+years = timesteps(inp_file)
 
 h1 = 6.58e-2
 h2 = 8.42e-2
@@ -27,9 +29,9 @@ def calculate_p(epsilon32, epsilon21, r32, r21, s, q, p_out):
 
     error = (abs((p_in - p_out)) / p_in) * 100
 
-    #print(error)
+    if (error <= 0.01 and error >= -0.01): return p_in
 
-    if (error <= 1 and error >= -1): return p_in
+    elif np.isnan(error): return 0
 
     else: return calculate_p(epsilon32, epsilon21, r32, r21, s, q, p_in)
 
@@ -63,41 +65,95 @@ def cgi(variable1, variable2, variable3, mesh):
     for i in range(len(phi1)):
         p.append(calculate_p(epsilon32[i], epsilon21[i], r32, r21, s[i], 0, 0))
 
+    print(p)
+
     e21 = abs((phi1 - phi2) / phi1)
 
     cgi = (1.25 * e21) / (power(r21, p) - 1)
 
+    for i, v in enumerate(cgi):
+        if np.isnan(v): cgi[i] = 0
+
     return cgi
+
+class cgi_values():
+    def __init__(self, file_type, variable, mix):
+        self.variable = variable
+        self.mix = mix
+        if file_type == 'dep': self.cgi_var = self.__dep()
+        else:                  self.cgi_var = self.__res()
+        
+    def __dep(self):
+        cgi_var = []
+        for i in range(1, 5):
+            var = []
+            for k in range(i, i+3):
+                var.append(neutronic_output(f'res/m{k}_msfr_mix{self.mix}_benchmark_burn_res.m', inp_file).keff)
+            cgi_var.append(cgi(var[0], var[1], var[2], i))
+        cgi_var.append(cgi(var[0], var[1], var[2], i))
+        ind = [f'Keff_mix{self.mix} 1', '2', '3', '4', '5']
+        cgi_var = pd.DataFrame(cgi_var, ind, years)
+        return cgi_var
+    
+    def __res(self):
+        cgi_var = []
+        for i in range(1, 5):
+            var = []
+            for k in range(i, i+3):
+                if self.variable == 'FIR':
+                    a = fir_values(f'dep/m{k}_msfr_mix{self.mix}_benchmark_burn_dep.m', inp_file, len(years))
+                elif self.variable == 'Ing.' or self.variable == 'Inh.':
+                    a = toxicity(f'dep/m{k}_msfr_mix{self.mix}_benchmark_burn_dep.m', inp_file, len(years))
+                else:
+                    a = fuel_mass(f'dep/m{k}_msfr_mix{self.mix}_benchmark_burn_dep.m', inp_file, len(years))
+                a = a[[f'{self.variable}']]
+                a = a.to_numpy()
+                a = np.transpose(a)
+                a = list(a[0])
+                var.append(a)     
+            cgi_var.append(cgi(var[0], var[1], var[2], i))
+        cgi_var.append(cgi(var[0], var[1], var[2], i))
+        ind = [f'{self.variable}_mix{self.mix} 1', '2', '3', '4', '5']
+        cgi_var = pd.DataFrame(cgi_var, ind, years)
+        return cgi_var
+
 
 def main():
 
-    ts = timesteps(inp)
+    variables = [
+        'keff',
+        'Pa',
+        'U',
+        'Np',
+        'Pu',
+        'Am',
+        'Cm',
+        '232U',
+        '233U',
+        '231Pa',
+        '238Pu',
+        '239Pu',
+        '240Pu',
+        '241Pu',
+        'FIR',
+        'Inh.',
+        'Ing.'
+    ]
 
-    #Keff
-    cgi_keff = []
-    for i in range(1, 5):
-        var = []
-        for k in range(i, i+3):
-            var.append(neutronic_output(f'res/m{k}_msfr_mix1_benchmark_burn_res.m', inp).keff)
-        cgi_keff.append(cgi(var[0], var[1], var[2], i))
-    cgi_keff.append(cgi(var[0], var[1], var[2], i))
-    ind = ['Keff 1', '2', '3', '4', '5']
-    cgi_keff = pd.DataFrame(cgi_keff, ind, ts)
+    cgi = []
+    for item in variables:
+        if item == 'keff':
+            cgi.append(cgi_values('dep', item, 1).cgi_var)
+        else:
+            cgi.append(cgi_values('res', item, 1).cgi_var)
 
-    #Fir
-    cgi_fir = []
-    for i in range(1, 5):
-        var = []
-        for k in range(i, i+3):
-            a = fir_values(f'dep/m{k}_msfr_mix1_benchmark_burn_dep.m', inp, len(ts))
-            var.append(a)
-        cgi_fir.append(cgi(var[0], var[1], var[2], i))
-    cgi_fir.append(cgi(var[0], var[1], var[2], i))
-    ind = ['Fir 1', '2', '3', '4', '5']
-    cgi_fir = pd.DataFrame(cgi_fir, ind, ts)
+    cgi = pd.concat(cgi)
 
-    cgi_fir.to_excel(f'fir.xlsx')
-
+    if os.path.exists('cgi.xlsx'):
+        os.remove('cgi.xlsx')
+    cgi.to_excel('cgi.xlsx')
+    
+    
 
 if __name__ == "__main__":
     main()

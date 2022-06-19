@@ -127,19 +127,17 @@ def fir_values(out_file, inp_file, intervals):
 
     #4. Divide the sum by the first U233 value
     fir_values = sum / first_U233
-    #fir_values = np.vstack([fir_values])
+    fir_values = np.vstack([fir_values])
 
     #5. Transform in a dataframe
-    # years = timesteps(inp_file)
-    # fir = pd.DataFrame(
-    #         fir_values,
-    #         index = ['FIR'],
-    #         columns = years
-    #     )
+    years = timesteps(inp_file)
+    fir = pd.DataFrame(
+            fir_values,
+            index = ['FIR'],
+            columns = years
+        )
 
-    #fir = fir.transpose()
-
-    fir = fir_values
+    fir = fir.transpose()
 
     return fir
 
