@@ -80,22 +80,62 @@ class cgi_values():
     def __init__(self, file_type, variable, mix):
         self.variable = variable
         self.mix = mix
-        if file_type == 'dep': self.cgi_var = self.__dep()
-        else:                  self.cgi_var = self.__res()
+        if file_type == 'res': self.cgi_var = self.__res()
+        else:                  self.cgi_var = self.__dep()
         
-    def __dep(self):
+    def __res(self):
         cgi_var = []
         for i in range(1, 5):
             var = []
             for k in range(i, i+3):
-                var.append(neutronic_output(f'res/m{k}_msfr_mix{self.mix}_benchmark_burn_res.m', inp_file).keff)
+                if self.variable == 'keff':
+                    a = neutronic_output(f'res/m{k}_msfr_mix{self.mix}_benchmark_burn_res.m', inp_file).keff
+
+                elif self.variable == 'feedback':
+                    keff = neutronic_output(f'res/m{k}_msfr_mix{self.mix}_benchmark_burn_res.m', inp_file).keff
+                    keff_tmp = neutronic_output(f'res/m{k}_msfr_mix{self.mix}_benchmark_burn_temperature_res.m', inp_file).keff
+                    keff_den = neutronic_output(f'res/m{k}_msfr_mix{self.mix}_benchmark_burn_density_res.m', inp_file).keff
+
+                    keff = np.array(keff)
+                    keff_tmp = np.array(keff_tmp)
+                    keff_den = np.array(keff_den)
+
+                    doppler_coef = abs((keff - keff_tmp)/300) * -1
+                    density_coef = abs((keff - keff_den)/230) * -1
+
+                    a = doppler_coef + density_coef
+                    
+
+                elif self.variable == 'doppler':
+                    keff = neutronic_output(f'res/m{k}_msfr_mix{self.mix}_benchmark_burn_res.m', inp_file).keff
+                    keff_tmp = neutronic_output(f'res/m{k}_msfr_mix{self.mix}_benchmark_burn_temperature_res.m', inp_file).keff
+
+                    keff = np.array(keff)
+                    keff_tmp = np.array(keff_tmp)
+
+                    doppler_coef = abs((keff - keff_tmp)/300) * -1
+
+                    a = doppler_coef
+
+                elif self.variable == 'density':
+                    keff = neutronic_output(f'res/m{k}_msfr_mix{self.mix}_benchmark_burn_res.m', inp_file).keff
+                    keff_den = neutronic_output(f'res/m{k}_msfr_mix{self.mix}_benchmark_burn_density_res.m', inp_file).keff
+
+                    keff = np.array(keff)
+                    keff_den = np.array(keff_den)
+
+                    density_coef = abs((keff - keff_den)/230) * -1
+
+                    a = density_coef
+
+                var.append(a)
             cgi_var.append(cgi(var[0], var[1], var[2], i))
         cgi_var.append(cgi(var[0], var[1], var[2], i))
-        ind = [f'Keff_mix{self.mix} 1', '2', '3', '4', '5']
+        ind = [f'{self.variable}_mix{self.mix} 1', '2', '3', '4', '5']
         cgi_var = pd.DataFrame(cgi_var, ind, years)
         return cgi_var
     
-    def __res(self):
+    def __dep(self):
         cgi_var = []
         for i in range(1, 5):
             var = []
@@ -122,6 +162,9 @@ def main():
 
     variables = [
         'keff',
+        'feedback',
+        'doppler',
+        'density',
         'Pa',
         'U',
         'Np',
@@ -142,10 +185,10 @@ def main():
 
     cgi = []
     for item in variables:
-        if item == 'keff':
-            cgi.append(cgi_values('dep', item, 1).cgi_var)
-        else:
+        if item == 'keff' or item == 'feedback' or item == 'doppler' or item == 'density':
             cgi.append(cgi_values('res', item, 1).cgi_var)
+        else:
+            cgi.append(cgi_values('dep', item, 1).cgi_var)
 
     cgi = pd.concat(cgi)
 
