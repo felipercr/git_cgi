@@ -4,6 +4,7 @@ import numpy as np
 from numpy import sign, log, power
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
 
 inp_file = "inp/msfr_mix1_benchmark_burn"
 years = timesteps(inp_file)
@@ -65,8 +66,8 @@ def cgi(variable1, variable2, variable3, mesh):
     for i in range(len(phi1)):
         p.append(calculate_p(epsilon32[i], epsilon21[i], r32, r21, s[i], 0, 0))
 
-    print(p)
-
+    #print(p)
+    
     e21 = abs((phi1 - phi2) / phi1)
 
     cgi = (1.25 * e21) / (power(r21, p) - 1)
@@ -187,8 +188,10 @@ def main():
     for item in variables:
         if item == 'keff' or item == 'feedback' or item == 'doppler' or item == 'density':
             cgi.append(cgi_values('res', item, 1).cgi_var)
+            pass
         else:
             cgi.append(cgi_values('dep', item, 1).cgi_var)
+            pass
 
     cgi = pd.concat(cgi)
 
