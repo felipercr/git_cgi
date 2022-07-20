@@ -40,7 +40,7 @@ def calculate_p(epsilon32, epsilon21, r32, r21, s, q, p_out):
 # Coarsest to Finest -> M6 < M5 < M4 < M3 < M2 < M1
 # Variables 1, 2, 3: vectors with the variables
 # Mesh: number of the mesh we want the GCI
-def cgi(variable1, variable2, variable3, mesh):
+def gci(variable1, variable2, variable3, mesh):
 
     phi1 = np.array(variable1)
     phi2 = np.array(variable2)
@@ -70,22 +70,22 @@ def cgi(variable1, variable2, variable3, mesh):
     
     e21 = abs((phi1 - phi2) / phi1)
 
-    cgi = (1.25 * e21) / (power(r21, p) - 1)
+    gci = (1.25 * e21) / (power(r21, p) - 1)
 
-    for i, v in enumerate(cgi):
-        if np.isnan(v): cgi[i] = 0
+    for i, v in enumerate(gci):
+        if np.isnan(v): gci[i] = 0
 
-    return cgi
+    return gci
 
-class cgi_values():
+class gci_values():
     def __init__(self, file_type, variable, mix):
         self.variable = variable
         self.mix = mix
-        if file_type == 'res': self.cgi_var = self.__res()
-        else:                  self.cgi_var = self.__dep()
+        if file_type == 'res': self.gci_var = self.__res()
+        else:                  self.gci_var = self.__dep()
         
     def __res(self):
-        cgi_var = []
+        gci_var = []
         for i in range(1, 5):
             var = []
             for k in range(i, i+3):
@@ -130,14 +130,14 @@ class cgi_values():
                     a = density_coef
 
                 var.append(a)
-            cgi_var.append(cgi(var[0], var[1], var[2], i))
-        cgi_var.append(cgi(var[0], var[1], var[2], i))
+            gci_var.append(gci(var[0], var[1], var[2], i))
+        gci_var.append(gci(var[0], var[1], var[2], i))
         ind = [f'{self.variable}_mix{self.mix} 1', '2', '3', '4', '5']
-        cgi_var = pd.DataFrame(cgi_var, ind, years)
-        return cgi_var
+        gci_var = pd.DataFrame(gci_var, ind, years)
+        return gci_var
     
     def __dep(self):
-        cgi_var = []
+        gci_var = []
         for i in range(1, 5):
             var = []
             for k in range(i, i+3):
@@ -152,11 +152,11 @@ class cgi_values():
                 a = np.transpose(a)
                 a = list(a[0])
                 var.append(a)     
-            cgi_var.append(cgi(var[0], var[1], var[2], i))
-        cgi_var.append(cgi(var[0], var[1], var[2], i))
+            gci_var.append(gci(var[0], var[1], var[2], i))
+        gci_var.append(gci(var[0], var[1], var[2], i))
         ind = [f'{self.variable}_mix{self.mix} 1', '2', '3', '4', '5']
-        cgi_var = pd.DataFrame(cgi_var, ind, years)
-        return cgi_var
+        gci_var = pd.DataFrame(gci_var, ind, years)
+        return gci_var
 
 
 def main():
@@ -184,20 +184,20 @@ def main():
         'Ing.'
     ]
 
-    cgi = []
+    gci = []
     for item in variables:
         if item == 'keff' or item == 'feedback' or item == 'doppler' or item == 'density':
-            cgi.append(cgi_values('res', item, 1).cgi_var)
+            gci.append(gci_values('res', item, 1).gci_var)
             pass
         else:
-            cgi.append(cgi_values('dep', item, 1).cgi_var)
+            gci.append(gci_values('dep', item, 1).gci_var)
             pass
 
-    cgi = pd.concat(cgi)
+    gci = pd.concat(gci)
 
-    if os.path.exists('cgi.xlsx'):
-        os.remove('cgi.xlsx')
-    cgi.to_excel('cgi.xlsx')
+    if os.path.exists('gci.xlsx'):
+        os.remove('gci.xlsx')
+    gci.to_excel('gci.xlsx')
     
     
 
